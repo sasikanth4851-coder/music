@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aura — Modern Music Streaming</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+            },
+            surface: {
+              950: '#09090b',
+              900: '#121215',
+              850: '#18181c',
+              800: '#202026',
+              700: '#2c2c35',
+            }
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    /* Hide scrollbar utility for horizontal carousels */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Equalizer Bars Animation */
+    @keyframes eqBounce {
+      0%, 100% { transform: scaleY(0.25); }
+      50% { transform: scaleY(1); }
+    }
+    .eq-bar {
+      transform-origin: bottom;
+      animation: eqBounce 0.85s ease-in-out infinite;
+    }
+    .eq-bar:nth-child(1) { animation-delay: 0.0s; }
+    .eq-bar:nth-child(2) { animation-delay: 0.2s; }
+    .eq-bar:nth-child(3) { animation-delay: 0.4s; }
+    .eq-bar:nth-child(4) { animation-delay: 0.15s; }
+
+    /* Custom Range Sliders */
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 12px;
+      width: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      opacity: 0;
+      transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+    .group:hover input[type="range"]::-webkit-slider-thumb,
+    input[type="range"]:focus::-webkit-slider-thumb {
+      opacity: 1;
+    }
+    input[type="range"]:hover::-webkit-slider-thumb {
+      transform: scale(1.15);
+    }
+  </style>
+</head>
+<body class="bg-surface-950 text-zinc-100 font-sans antialiased selection:bg-brand-500/30 selection:text-brand-400 overflow-hidden h-screen flex flex-col">
+
+  <!-- Main Workspace Wrapper -->
+  <div class="flex flex-1 overflow-hidden">
+
+    <!-- Desktop Sidebar -->
+    <aside id="sidebar" class="hidden md:flex flex-col w-64 bg-surface-900/90 border-r border-white/5 p-4 gap-5 shrink-0 select-none">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 px-2 pt-1">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-400 via-teal-500 to-cyan-600 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <svg class="w-5 h-5 text-zinc-950" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+          </svg>
+        </div>
+        <div>
+          <span class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">AURA</span>
+          <span class="block text-[10px] uppercase tracking-widest text-emerald-400 font-semibold -mt-1">Hi-Fi Spatial</span>
+        </div>
+      </div>
+
+      <!-- Primary Navigation -->
+      <nav class="space-y-1">
+        <button data-nav="home" class="nav-btn active w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all bg-white/10 text-white">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+          </svg>
+          Home
+        </button>
+        <button data-nav="search" class="nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          Search
+        </button>
+        <button data-nav="library" class="nav-btn w-full flex items-center gap-3.5 px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-all">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+          </svg>
+          Your Library
+        </button>
+      </nav>
+
+      <!-- Divider -->
+      <div class="border-t border-white/5"></div>
+
+      <!-- Playlists Section -->
+      <div class="flex-1 flex flex-col min-h-0">
+        <div class="flex items-center justify-between px-3 mb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Playlists</span>
+          <button id="createPlaylistBtn" title="Create New Playlist" class="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-white/10 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+            </svg>
+          </button>
+        </div>
+
+        <div id="sidebarPlaylists" class="flex-1 overflow-y-auto space-y-1 pr-1">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Synth Audio Status Badge -->
+      <div class="p-3 rounded-xl bg-gradient-to-br from-surface-800 to-surface-850 border border-white/5">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs font-semibold text-zinc-200 flex items-center gap-1.5">
+            <span id="synthStatusDot" class="w-2 h-2 rounded-full bg-zinc-500"></span>
+            Web Audio Synth
+          </span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-medium">24-Bit</span>
+        </div>
+        <p class="text-[11px] text-zinc-400 leading-relaxed">
+          Press Play on any track to generate harmonic ambient chords & beat synthesis.
+        </p>
+      </div>
+    </aside>
+
+    <!-- Main Scrollable Content View -->
+    <main id="mainScroll" class="flex-1 overflow-y-auto relative bg-gradient-to-b from-emerald-950/30 via-surface-950 to-surface-950">
+
+      <!-- Sticky Top Header -->
+      <header class="sticky top-0 z-30 backdrop-blur-xl bg-surface-950/75 border-b border-white/5 px-4 sm:px-8 py-3.5 flex items-center justify-between gap-4">
+        <!-- Mobile Logo & Back/Forward -->
+        <div class="flex items-center gap-3">
+          <div class="flex md:hidden items-center gap-2">
+            <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-cyan-500 flex items-center justify-center">
+              <svg class="w-4 h-4 text-zinc-950" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+              </svg>
+            </div>
+            <span class="font-bold text-base tracking-tight">AURA</span>
+          </div>
+
+          <div class="hidden sm:flex items-center gap-1.5">
+            <button id="resetViewBtn" class="p-2 rounded-full bg-surface-800/80 hover:bg-surface-700 text-zinc-300 hover:text-white transition" title="Back to Home">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Search Input -->
+        <div class="flex-1 max-w-md relative">
+          <svg class="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <input
+            id="globalSearchInput"
+            type="text"
+            placeholder="Search tracks, artists, albums, or moods..."
+            class="w-full bg-surface-800/90 hover:bg-surface-800 focus:bg-surface-800 text-sm text-white placeholder-zinc-400 pl-10 pr-9 py-2 rounded-full border border-white/10 focus:border-emerald-500/60 focus:outline-none transition"
+          />
+          <button id="clearSearchBtn" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- User Profile & Quick Filter Pill -->
+        <div class="flex items-center gap-3">
+          <button id="likedSongsHeaderBtn" class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-medium text-zinc-200 transition">
+            <svg class="w-3.5 h-3.5 text-emerald-400" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+            <span>Liked (<span id="likedCountBadge">4</span>)</span>
+          </button>
+          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold text-white shadow ring-2 ring-white/10">
+            JD
+          </div>
+        </div>
+      </header>
+
+      <!-- Mobile Horizontal Nav Bar -->
+      <div class="flex md:hidden items-center gap-2 px-4 pt-3 pb-1 overflow-x-auto no-scrollbar">
+        <button data-nav="home" class="mobile-nav-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500 text-zinc-950">Home</button>
+        <button data-nav="search" class="mobile-nav-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-zinc-300">Search</button>
+        <button data-nav="library" class="mobile-nav-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-zinc-300">Your Library</button>
+        <button id="mobileLikedBtn" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-zinc-300">Liked Songs</button>
+      </div>
+
+      <!-- Dynamic Page Container -->
+      <div id="contentContainer" class="px-4 sm:px-8 py-6 pb-32 max-w-7xl mx-auto space-y-10">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Banner -->
+  <div id="toastBanner" class="fixed bottom-24 right-6 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-300 bg-surface-800 border border-white/15 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-2">
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastMessage">Added to Liked Songs</span>
+  </div>
+
+  <!-- Tracklist / Detail Modal (for Albums, Playlists, or Artists) -->
+  <div id="detailModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-900 border border-white/10 rounded-2xl w-full max-w-2xl max-h-[82vh] flex flex-col overflow-hidden shadow-2xl animate-fadeIn">
+      <!-- Modal Header -->
+      <div id="modalHero" class="p-6 flex flex-col sm:flex-row items-center sm:items-end gap-5 bg-gradient-to-b from-emerald-900/40 to-surface-900 border-b border-white/5 relative">
+        <button id="closeModalBtn" class="absolute top-4 right-4 p-2 rounded-full bg-black/40 hover:bg-black/70 text-zinc-300 hover:text-white transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+        <div id="modalCover" class="w-32 h-32 sm:w-36 sm:h-36 rounded-xl shadow-2xl overflow-hidden shrink-0"></div>
+        <div class="text-center sm:text-left flex-1">
+          <span id="modalBadge" class="text-[11px] uppercase tracking-widest font-bold text-emerald-400">PLAYLIST</span>
+          <h2 id="modalTitle" class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Midnight Synthwave</h2>
+          <p id="modalSubtitle" class="text-sm text-zinc-400 mt-1">Curated by Aura Editorial • 6 tracks</p>
+          <div class="mt-4 flex items-center justify-center sm:justify-start gap-3">
+            <button id="modalPlayAllBtn" class="px-6 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition transform active:scale-95">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+              Play All
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Tracklist -->
+      <div id="modalTracksList" class="flex-1 overflow-y-auto p-4 sm:p-6 divide-y divide-white/5">
+        <!-- Populated dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Playlist Modal -->
+  <div id="createPlaylistModal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-surface-900 border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
+      <h3 class="text-lg font-bold text-white mb-1">Create New Playlist</h3>
+      <p class="text-xs text-zinc-400 mb-4">Give your custom mix a name and we'll populate it with fresh vibes.</p>
+      <input id="newPlaylistNameInput" type="text" placeholder="e.g., Late Night Coding" class="w-full bg-surface-800 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 mb-4" />
+      <div class="flex justify-end gap-2">
+        <button id="cancelCreatePlaylistBtn" class="px-4 py-2 rounded-xl text-xs font-semibold text-zinc-400 hover:text-white hover:bg-white/5 transition">Cancel</button>
+        <button id="confirmCreatePlaylistBtn" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 transition">Create Playlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Persistent Bottom Music Player Bar -->
+  <footer class="h-22 sm:h-24 bg-surface-900/95 backdrop-blur-2xl border-t border-white/10 px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 sm:gap-6 z-40 select-none shrink-0">
+
+    <!-- Left: Now Playing Track Info -->
+    <div class="flex items-center gap-3 min-w-0 w-1/3 sm:w-[30%]">
+      <div id="playerCover" class="w-12 h-12 sm:w-14 sm:h-14 rounded-xl overflow-hidden shadow-lg shrink-0 relative group cursor-pointer">
+        <!-- Dynamic SVG Cover -->
+      </div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2">
+          <h4 id="playerTitle" class="text-sm font-semibold text-white truncate hover:underline cursor-pointer">Neon Horizon</h4>
+          <!-- Mini Animated Equalizer -->
+          <div id="playerVisualizer" class="hidden items-end gap-0.5 h-3 shrink-0">
+            <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+            <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+            <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+            <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+          </div>
+        </div>
+        <p id="playerArtist" class="text-xs text-zinc-400 truncate hover:text-zinc-200 cursor-pointer">Kairo & The Echoes</p>
+      </div>
+      <button id="playerLikeBtn" class="p-2 rounded-full text-zinc-400 hover:text-emerald-400 transition shrink-0" title="Save to Your Library">
+        <svg id="playerLikeIcon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Center: Playback Controls & Seek Bar -->
+    <div class="flex flex-col items-center justify-center flex-1 max-w-xl">
+      <div class="flex items-center gap-3 sm:gap-5 mb-1.5">
+        <!-- Shuffle -->
+        <button id="shuffleBtn" class="p-1.5 text-zinc-400 hover:text-white transition relative" title="Shuffle">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+          </svg>
+          <span id="shuffleDot" class="hidden w-1 h-1 rounded-full bg-emerald-400 absolute bottom-0.5 left-1/2 -translate-x-1/2"></span>
+        </button>
+
+        <!-- Previous -->
+        <button id="prevBtn" class="p-1.5 text-zinc-300 hover:text-white transition" title="Previous">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/>
+          </svg>
+        </button>
+
+        <!-- Play / Pause -->
+        <button id="playPauseBtn" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white hover:bg-zinc-200 text-zinc-950 flex items-center justify-center shadow-md transition transform active:scale-95" title="Play / Pause">
+          <svg id="playIcon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M8 5v14l11-7z"/>
+          </svg>
+          <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+          </svg>
+        </button>
+
+        <!-- Next -->
+        <button id="nextBtn" class="p-1.5 text-zinc-300 hover:text-white transition" title="Next">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/>
+          </svg>
+        </button>
+
+        <!-- Repeat -->
+        <button id="repeatBtn" class="p-1.5 text-zinc-400 hover:text-white transition relative" title="Repeat">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <span id="repeatDot" class="hidden w-1 h-1 rounded-full bg-emerald-400 absolute bottom-0.5 left-1/2 -translate-x-1/2"></span>
+        </button>
+      </div>
+
+      <!-- Progress / Seek Bar -->
+      <div class="w-full flex items-center gap-2.5 group">
+        <span id="currentTimeLabel" class="text-[11px] font-medium text-zinc-400 w-9 text-right tabular-nums">0:00</span>
+        <div class="relative flex-1 h-1.5 bg-zinc-700/80 rounded-full flex items-center">
+          <div id="progressFill" class="h-full bg-white group-hover:bg-emerald-400 rounded-full pointer-events-none transition-colors" style="width: 0%;"></div>
+          <input id="seekSlider" type="range" min="0" max="100" value="0" step="0.1" class="absolute inset-0 w-full h-full opacity-100 z-10" aria-label="Seek progress" />
+        </div>
+        <span id="totalDurationLabel" class="text-[11px] font-medium text-zinc-400 w-9 tabular-nums">3:24</span>
+      </div>
+    </div>
+
+    <!-- Right: Volume & Extra Controls -->
+    <div class="hidden sm:flex items-center justify-end gap-3 w-[30%]">
+      <button id="muteBtn" class="p-1.5 text-zinc-400 hover:text-white transition" title="Mute / Unmute">
+        <svg id="volHighIcon" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+        </svg>
+        <svg id="volMuteIcon" class="w-5 h-5 hidden text-rose-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15zM17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+        </svg>
+      </button>
+
+      <div class="w-24 relative h-1.5 bg-zinc-700/80 rounded-full flex items-center group">
+        <div id="volumeFill" class="h-full bg-white group-hover:bg-emerald-400 rounded-full pointer-events-none transition-colors" style="width: 75%;"></div>
+        <input id="volumeSlider" type="range" min="0" max="1" step="0.01" value="0.75" class="absolute inset-0 w-full h-full z-10" aria-label="Volume" />
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic & Web Audio Synthesizer -->
+  <script>
+    /**
+     * Custom SVG Artwork Generator
+     * Creates crisp, distinct, vibrant geometric vector album/artist covers so zero broken images occur.
+     */
+    function generateCoverSVG(palette, patternType = 0, label = '') {
+      const [c1, c2, c3] = palette;
+      const uid = 'grad_' + Math.random().toString(36).substring(2, 9);
+      let shapes = '';
+
+      if (patternType % 4 === 0) {
+        shapes = `
+          <circle cx="145" cy="55" r="70" fill="${c3}" fill-opacity="0.35"/>
+          <circle cx="55" cy="150" r="85" fill="${c1}" fill-opacity="0.45"/>
+          <path d="M0 130 Q 100 70 200 130 L 200 200 L 0 200 Z" fill="${c2}" fill-opacity="0.5"/>
+        `;
+      } else if (patternType % 4 === 1) {
+        shapes = `
+          <rect x="25" y="25" width="150" height="150" rx="28" fill="none" stroke="${c3}" stroke-width="10" stroke-opacity="0.45"/>
+          <circle cx="100" cy="100" r="42" fill="${c3}" fill-opacity="0.6"/>
+          <circle cx="100" cy="100" r="14" fill="#09090b"/>
+        `;
+      } else if (patternType % 4 === 2) {
+        shapes = `
+          <polygon points="100,20 185,175 15,175" fill="${c3}" fill-opacity="0.35"/>
+          <polygon points="100,55 160,165 40,165" fill="${c1}" fill-opacity="0.55"/>
+        `;
+      } else {
+        shapes = `
+          <path d="M0,40 C60,10 140,90 200,40 L200,200 L0,200 Z" fill="${c3}" fill-opacity="0.35"/>
+          <path d="M0,100 C70,150 130,60 200,110 L200,200 L0,200 Z" fill="${c1}" fill-opacity="0.5"/>
+          <circle cx="150" cy="45" r="22" fill="#ffffff" fill-opacity="0.35"/>
+        `;
+      }
+
+      return `
+        <svg viewBox="0 0 200 200" class="w-full h-full object-cover block" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="${uid}" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="${c1}" />
+              <stop offset="55%" stop-color="${c2}" />
+              <stop offset="100%" stop-color="${c3}" />
+            </linearGradient>
+          </defs>
+          <rect width="200" height="200" fill="url(#${uid})" />
+          ${shapes}
+          ${label ? `<text x="16" y="182" fill="rgba(255,255,255,0.85)" font-family="Inter, sans-serif" font-weight="800" font-size="16" letter-spacing="1">${label}</text>` : ''}
+        </svg>
+      `;
+    }
+
+    /**
+     * Rich Mock Catalog Data
+     */
+    const ARTISTS = [
+      {
+        id: 'art-1',
+        name: 'Kairo & The Echoes',
+        genre: 'Electronic / Chillwave',
+        followers: '2.4M Followers',
+        palette: ['#10b981', '#0d9488', '#1e1b4b'],
+        pattern: 1
+      },
+      {
+        id: 'art-2',
+        name: 'Luna Solis',
+        genre: 'Neo-Soul / R&B',
+        followers: '4.1M Followers',
+        palette: ['#f43f5e', '#c026d3', '#311042'],
+        pattern: 0
+      },
+      {
+        id: 'art-3',
+        name: 'Vespera',
+        genre: 'Ambient Synth / Downtempo',
+        followers: '1.8M Followers',
+        palette: ['#6366f1', '#3b82f6', '#0f172a'],
+        pattern: 3
+      },
+      {
+        id: 'art-4',
+        name: 'Aether Drift',
+        genre: 'Melodic House',
+        followers: '3.2M Followers',
+        palette: ['#f59e0b', '#ea580c', '#451a03'],
+        pattern: 2
+      },
+      {
+        id: 'art-5',
+        name: 'Sora Takahashi',
+        genre: 'Lo-Fi Jazz / Instrumental',
+        followers: '1.5M Followers',
+        palette: ['#06b6d4', '#0284c7', '#1e293b'],
+        pattern: 1
+      },
+      {
+        id: 'art-6',
+        name: 'Nyx Velvet',
+        genre: 'Indie Pop / Dreamwave',
+        followers: '2.9M Followers',
+        palette: ['#ec4899', '#8b5cf6', '#1e1b4b'],
+        pattern: 0
+      }
+    ];
+
+    const TRACKS = [
+      {
+        id: 'trk-1',
+        title: 'Neon Horizon',
+        artist: 'Kairo & The Echoes',
+        artistId: 'art-1',
+        album: 'Midnight Telemetry',
+        albumId: 'alb-1',
+        duration: 204, // 3:24
+        plays: '48,920,114',
+        liked: true,
+        recent: true,
+        palette: ['#10b981', '#065f46', '#09090b'],
+        pattern: 0,
+        chordFreqs: [261.63, 329.63, 392.00, 493.88] // Cmaj7
+      },
+      {
+        id: 'trk-2',
+        title: 'Velvet Eclipse',
+        artist: 'Luna Solis',
+        artistId: 'art-2',
+        album: 'Solaris Bloom',
+        albumId: 'alb-2',
+        duration: 189, // 3:09
+        plays: '62,104,890',
+        liked: true,
+        recent: true,
+        palette: ['#f43f5e', '#9f1239', '#1f1024'],
+        pattern: 3,
+        chordFreqs: [220.00, 261.63, 329.63, 392.00] // Am7
+      },
+      {
+        id: 'trk-3',
+        title: 'Glass Cathedral',
+        artist: 'Vespera',
+        artistId: 'art-3',
+        album: 'Subzero Reverie',
+        albumId: 'alb-3',
+        duration: 236, // 3:56
+        plays: '31,445,200',
+        liked: false,
+        recent: true,
+        palette: ['#6366f1', '#1d4ed8', '#09090b'],
+        pattern: 1,
+        chordFreqs: [174.61, 220.00, 261.63, 329.63] // Fmaj7
+      },
+      {
+        id: 'trk-4',
+        title: 'Golden Hour Static',
+        artist: 'Aether Drift',
+        artistId: 'art-4',
+        album: 'Mirage Protocol',
+        albumId: 'alb-4',
+        duration: 215, // 3:35
+        plays: '54,310,008',
+        liked: true,
+        recent: true,
+        palette: ['#f59e0b', '#b45309', '#1c1917'],
+        pattern: 2,
+        chordFreqs: [196.00, 246.94, 293.66, 349.23] // G7
+      },
+      {
+        id: 'trk-5',
+        title: 'Kyoto Raindrops',
+        artist: 'Sora Takahashi',
+        artistId: 'art-5',
+        album: 'Paper Lanterns',
+        albumId: 'alb-5',
+        duration: 168, // 2:48
+        plays: '27,889,432',
+        liked: false,
+        recent: true,
+        palette: ['#06b6d4', '#0369a1', '#0f172a'],
+        pattern: 3,
+        chordFreqs: [293.66, 349.23, 440.00, 523.25] // Dm7
+      },
+      {
+        id: 'trk-6',
+        title: 'Starlight Mirage',
+        artist: 'Nyx Velvet',
+        artistId: 'art-6',
+        album: 'Ultraviolet',
+        albumId: 'alb-6',
+        duration: 198, // 3:18
+        plays: '39,512,774',
+        liked: true,
+        recent: true,
+        palette: ['#ec4899', '#7e22ce', '#09090b'],
+        pattern: 0,
+        chordFreqs: [329.63, 392.00, 493.88, 587.33] // Em7
+      },
+      {
+        id: 'trk-7',
+        title: 'Pulse of Andromeda',
+        artist: 'Kairo & The Echoes',
+        artistId: 'art-1',
+        album: 'Midnight Telemetry',
+        albumId: 'alb-1',
+        duration: 242, // 4:02
+        plays: '19,403,110',
+        liked: false,
+        recent: false,
+        palette: ['#34d399', '#059669', '#064e3b'],
+        pattern: 2,
+        chordFreqs: [261.63, 329.63, 392.00, 493.88]
+      },
+      {
+        id: 'trk-8',
+        title: 'Crimson Tide',
+        artist: 'Luna Solis',
+        artistId: 'art-2',
+        album: 'Solaris Bloom',
+        albumId: 'alb-2',
+        duration: 181, // 3:01
+        plays: '22,670,950',
+        liked: false,
+        recent: false,
+        palette: ['#fb7185', '#e11d48', '#4c0519'],
+        pattern: 1,
+        chordFreqs: [220.00, 261.63, 329.63, 392.00]
+      }
+    ];
+
+    const ALBUMS = [
+      {
+        id: 'alb-1',
+        title: 'Midnight Telemetry',
+        artist: 'Kairo & The Echoes',
+        year: '2026',
+        palette: ['#10b981', '#047857', '#022c22'],
+        pattern: 1,
+        trackIds: ['trk-1', 'trk-7', 'trk-3']
+      },
+      {
+        id: 'alb-2',
+        title: 'Solaris Bloom',
+        artist: 'Luna Solis',
+        year: '2025',
+        palette: ['#f43f5e', '#be185d', '#3b0764'],
+        pattern: 0,
+        trackIds: ['trk-2', 'trk-8', 'trk-6']
+      },
+      {
+        id: 'alb-3',
+        title: 'Subzero Reverie',
+        artist: 'Vespera',
+        year: '2026',
+        palette: ['#6366f1', '#2563eb', '#0f172a'],
+        pattern: 3,
+        trackIds: ['trk-3', 'trk-5', 'trk-1']
+      },
+      {
+        id: 'alb-4',
+        title: 'Mirage Protocol',
+        artist: 'Aether Drift',
+        year: '2025',
+        palette: ['#f59e0b', '#d97706', '#292524'],
+        pattern: 2,
+        trackIds: ['trk-4', 'trk-7', 'trk-2']
+      },
+      {
+        id: 'alb-5',
+        title: 'Paper Lanterns',
+        artist: 'Sora Takahashi',
+        year: '2026',
+        palette: ['#06b6d4', '#0284c7', '#0c4a6e'],
+        pattern: 1,
+        trackIds: ['trk-5', 'trk-6', 'trk-3']
+      }
+    ];
+
+    let PLAYLISTS = [
+      {
+        id: 'pl-1',
+        title: 'Late Night Focus',
+        description: 'Deep ambient synths & minimal beats for flow state.',
+        palette: ['#10b981', '#0f766e', '#09090b'],
+        pattern: 0,
+        trackIds: ['trk-1', 'trk-3', 'trk-5', 'trk-7']
+      },
+      {
+        id: 'pl-2',
+        title: 'Neon Drive 2084',
+        description: 'Retro-futuristic synthwave and nocturnal basslines.',
+        palette: ['#ec4899', '#6366f1', '#09090b'],
+        pattern: 2,
+        trackIds: ['trk-2', 'trk-4', 'trk-6', 'trk-8']
+      },
+      {
+        id: 'pl-3',
+        title: 'Chill Lo-Fi Study',
+        description: 'Warm electric pianos, soft rain, and dusty grooves.',
+        palette: ['#06b6d4', '#3b82f6', '#1e1b4b'],
+        pattern: 3,
+        trackIds: ['trk-5', 'trk-1', 'trk-2', 'trk-3']
+      },
+      {
+        id: 'pl-4',
+        title: 'Sunset Rooftop',
+        description: 'Golden hour melodic house and soulful vocal cuts.',
+        palette: ['#f59e0b', '#f43f5e', '#27272a'],
+        pattern: 1,
+        trackIds: ['trk-4', 'trk-6', 'trk-8', 'trk-1']
+      }
+    ];
+
+    /**
+     * Application State
+     */
+    const state = {
+      activeNav: 'home', // 'home' | 'search' | 'library'
+      searchQuery: '',
+      selectedArtistId: null,
+      currentTrackIndex: 0,
+      queue: [...TRACKS],
+      isPlaying: false,
+      currentTime: 0,
+      volume: 0.75,
+      isMuted: false,
+      isShuffle: false,
+      repeatMode: 0 // 0: off, 1: all, 2: one
+    };
+
+    /**
+     * Web Audio API Ambient Synthesizer Engine
+     * Generates soft, warm harmonic chords & gentle pulse when playing so the user gets real audio feedback
+     */
+    class AmbientSynthEngine {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.stepInterval = null;
+        this.stepIndex = 0;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioCtx();
+          this.masterGain = this.ctx.createGain();
+          this.masterGain.gain.value = state.isMuted ? 0 : state.volume * 0.22;
+          this.masterGain.connect(this.ctx.destination);
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      setVolume(vol, muted) {
+        if (this.masterGain && this.ctx) {
+          const target = muted ? 0 : vol * 0.22;
+          this.masterGain.gain.setTargetAtTime(target, this.ctx.currentTime, 0.05);
+        }
+      }
+
+      playNote(freq, duration = 1.4, type = 'sine', gainScale = 0.35) {
+        if (!this.ctx || !this.masterGain) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const noteGain = this.ctx.createGain();
+
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        // Smooth ADSR envelope
+        noteGain.gain.setValueAtTime(0.0001, now);
+        noteGain.gain.exponentialRampToValueAtTime(gainScale, now + 0.08);
+        noteGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(noteGain);
+        noteGain.connect(this.masterGain);
+
+        osc.start(now);
+        osc.stop(now + duration + 0.05);
+      }
+
+      start(track) {
+        this.init();
+        this.stop();
+        const freqs = track.chordFreqs || [261.63, 329.63, 392.00, 493.88];
+        this.stepIndex = 0;
+
+        const triggerStep = () => {
+          if (!state.isPlaying) return;
+          const note = freqs[this.stepIndex % freqs.length];
+          // Play root pad + arpeggio chime
+          if (this.stepIndex % 4 === 0) {
+            this.playNote(freqs[0] / 2, 2.2, 'triangle', 0.35);
+          }
+          this.playNote(note, 1.3, 'sine', 0.28);
+          if (this.stepIndex % 2 === 1) {
+            this.playNote(note * 2, 0.8, 'sine', 0.12);
+          }
+          this.stepIndex++;
+        };
+
+        triggerStep();
+        this.stepInterval = setInterval(triggerStep, 650);
+      }
+
+      stop() {
+        if (this.stepInterval) {
+          clearInterval(this.stepInterval);
+          this.stepInterval = null;
+        }
+      }
+    }
+
+    const synth = new AmbientSynthEngine();
+
+    /**
+     * Formatting Helpers
+     */
+    function formatTime(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      const mins = Math.floor(s / 60);
+      const secs = s % 60;
+      return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    let toastTimeout = null;
+    function showToast(msg) {
+      const banner = document.getElementById('toastBanner');
+      const text = document.getElementById('toastMessage');
+      text.textContent = msg;
+      banner.classList.remove('opacity-0', 'translate-y-2');
+      clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        banner.classList.add('opacity-0', 'translate-y-2');
+      }, 2400);
+    }
+
+    /**
+     * Core Playback Controller
+     */
+    function getCurrentTrack() {
+      return state.queue[state.currentTrackIndex] || TRACKS[0];
+    }
+
+    function playTrackById(trackId, customQueue = null) {
+      if (customQueue) {
+        state.queue = [...customQueue];
+      }
+      const idx = state.queue.findIndex(t => t.id === trackId);
+      if (idx !== -1) {
+        state.currentTrackIndex = idx;
+      } else {
+        const found = TRACKS.find(t => t.id === trackId);
+        if (found) {
+          state.queue = [...TRACKS];
+          state.currentTrackIndex = state.queue.findIndex(t => t.id === trackId);
+        }
+      }
+
+      const track = getCurrentTrack();
+      track.recent = true;
+      state.currentTime = 0;
+      state.isPlaying = true;
+      synth.start(track);
+      updatePlayerUI();
+      renderView();
+    }
+
+    function togglePlayPause() {
+      const track = getCurrentTrack();
+      state.isPlaying = !state.isPlaying;
+      if (state.isPlaying) {
+        synth.start(track);
+      } else {
+        synth.stop();
+      }
+      updatePlayerUI();
+      renderView();
+    }
+
+    function playNext() {
+      if (state.isShuffle) {
+        let nextIdx = Math.floor(Math.random() * state.queue.length);
+        if (state.queue.length > 1 && nextIdx === state.currentTrackIndex) {
+          nextIdx = (nextIdx + 1) % state.queue.length;
+        }
+        state.currentTrackIndex = nextIdx;
+      } else {
+        state.currentTrackIndex = (state.currentTrackIndex + 1) % state.queue.length;
+      }
+      state.currentTime = 0;
+      state.isPlaying = true;
+      const track = getCurrentTrack();
+      track.recent = true;
+      synth.start(track);
+      updatePlayerUI();
+      renderView();
+    }
+
+    function playPrev() {
+      if (state.currentTime > 4) {
+        state.currentTime = 0;
+      } else {
+        state.currentTrackIndex = (state.currentTrackIndex - 1 + state.queue.length) % state.queue.length;
+        state.currentTime = 0;
+      }
+      state.isPlaying = true;
+      const track = getCurrentTrack();
+      synth.start(track);
+      updatePlayerUI();
+      renderView();
+    }
+
+    function toggleLikeTrack(trackId, e) {
+      if (e) e.stopPropagation();
+      const track = TRACKS.find(t => t.id === trackId);
+      if (!track) return;
+      track.liked = !track.liked;
+      updateLikedBadge();
+      updatePlayerUI();
+      renderView();
+      showToast(track.liked ? `Added "${track.title}" to Liked Songs` : `Removed "${track.title}" from Liked Songs`);
+    }
+
+    function updateLikedBadge() {
+      const count = TRACKS.filter(t => t.liked).length;
+      const badge = document.getElementById('likedCountBadge');
+      if (badge) badge.textContent = count;
+    }
+
+    /**
+     * Update Persistent Music Player UI
+     */
+    function updatePlayerUI() {
+      const track = getCurrentTrack();
+      document.getElementById('playerCover').innerHTML = generateCoverSVG(track.palette, track.pattern);
+      document.getElementById('playerTitle').textContent = track.title;
+      document.getElementById('playerArtist').textContent = track.artist;
+      document.getElementById('totalDurationLabel').textContent = formatTime(track.duration);
+      document.getElementById('currentTimeLabel').textContent = formatTime(state.currentTime);
+
+      const pct = Math.min(100, (state.currentTime / track.duration) * 100);
+      document.getElementById('progressFill').style.width = `${pct}%`;
+      document.getElementById('seekSlider').value = pct;
+
+      // Play/Pause icons & visualizer
+      const playIcon = document.getElementById('playIcon');
+      const pauseIcon = document.getElementById('pauseIcon');
+      const visualizer = document.getElementById('playerVisualizer');
+      const synthDot = document.getElementById('synthStatusDot');
+
+      if (state.isPlaying) {
+        playIcon.classList.add('hidden');
+        pauseIcon.classList.remove('hidden');
+        visualizer.classList.remove('hidden');
+        visualizer.classList.add('flex');
+        if (synthDot) {
+          synthDot.classList.remove('bg-zinc-500');
+          synthDot.classList.add('bg-emerald-400', 'animate-ping');
+        }
+      } else {
+        playIcon.classList.remove('hidden');
+        pauseIcon.classList.add('hidden');
+        visualizer.classList.add('hidden');
+        visualizer.classList.remove('flex');
+        if (synthDot) {
+          synthDot.classList.add('bg-zinc-500');
+          synthDot.classList.remove('bg-emerald-400', 'animate-ping');
+        }
+      }
+
+      // Like Heart State
+      const likeBtn = document.getElementById('playerLikeBtn');
+      const likeIcon = document.getElementById('playerLikeIcon');
+      if (track.liked) {
+        likeBtn.classList.remove('text-zinc-400');
+        likeBtn.classList.add('text-emerald-400');
+        likeIcon.setAttribute('fill', 'currentColor');
+      } else {
+        likeBtn.classList.add('text-zinc-400');
+        likeBtn.classList.remove('text-emerald-400');
+        likeIcon.setAttribute('fill', 'none');
+      }
+
+      // Shuffle & Repeat States
+      const shuffleBtn = document.getElementById('shuffleBtn');
+      const shuffleDot = document.getElementById('shuffleDot');
+      if (state.isShuffle) {
+        shuffleBtn.classList.add('text-emerald-400');
+        shuffleBtn.classList.remove('text-zinc-400');
+        shuffleDot.classList.remove('hidden');
+      } else {
+        shuffleBtn.classList.remove('text-emerald-400');
+        shuffleBtn.classList.add('text-zinc-400');
+        shuffleDot.classList.add('hidden');
+      }
+
+      const repeatBtn = document.getElementById('repeatBtn');
+      const repeatDot = document.getElementById('repeatDot');
+      if (state.repeatMode > 0) {
+        repeatBtn.classList.add('text-emerald-400');
+        repeatBtn.classList.remove('text-zinc-400');
+        repeatDot.classList.remove('hidden');
+      } else {
+        repeatBtn.classList.remove('text-emerald-400');
+        repeatBtn.classList.add('text-zinc-400');
+        repeatDot.classList.add('hidden');
+      }
+    }
+
+    /**
+     * Playback Progress Timer Loop (runs every 250ms)
+     */
+    setInterval(() => {
+      if (!state.isPlaying) return;
+      const track = getCurrentTrack();
+      state.currentTime += 0.25;
+      if (state.currentTime >= track.duration) {
+        if (state.repeatMode === 2) {
+          state.currentTime = 0;
+        } else if (state.repeatMode === 0 && state.currentTrackIndex === state.queue.length - 1 && !state.isShuffle) {
+          state.isPlaying = false;
+          state.currentTime = 0;
+          synth.stop();
+          updatePlayerUI();
+          renderView();
+          return;
+        } else {
+          playNext();
+          return;
+        }
+      }
+      document.getElementById('currentTimeLabel').textContent = formatTime(state.currentTime);
+      const pct = Math.min(100, (state.currentTime / track.duration) * 100);
+      document.getElementById('progressFill').style.width = `${pct}%`;
+      document.getElementById('seekSlider').value = pct;
+    }, 250);
+
+    /**
+     * Render Sidebar Playlists
+     */
+    function renderSidebarPlaylists() {
+      const container = document.getElementById('sidebarPlaylists');
+      if (!container) return;
+      container.innerHTML = PLAYLISTS.map(pl => `
+        <button onclick="openCollectionModal('playlist', '${pl.id}')" class="w-full flex items-center gap-3 px-2.5 py-2 rounded-xl hover:bg-white/5 text-left group transition">
+          <div class="w-9 h-9 rounded-lg overflow-hidden shrink-0 shadow">
+            ${generateCoverSVG(pl.palette, pl.pattern)}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-semibold text-zinc-200 group-hover:text-white truncate">${pl.title}</p>
+            <p class="text-[11px] text-zinc-500 truncate">Playlist • ${pl.trackIds.length} songs</p>
+          </div>
+        </button>
+      `).join('');
+    }
+
+    /**
+     * Open Collection Modal (Album, Playlist, or Artist)
+     */
+    function openCollectionModal(type, id) {
+      const modal = document.getElementById('detailModal');
+      let title = '', subtitle = '', badge = '', palette = [], pattern = 0, trackList = [];
+
+      if (type === 'playlist') {
+        const pl = PLAYLISTS.find(p => p.id === id);
+        if (!pl) return;
+        badge = 'CURATED PLAYLIST';
+        title = pl.title;
+        subtitle = `${pl.description} • ${pl.trackIds.length} tracks`;
+        palette = pl.palette;
+        pattern = pl.pattern;
+        trackList = pl.trackIds.map(tid => TRACKS.find(t => t.id === tid)).filter(Boolean);
+      } else if (type === 'album') {
+        const alb = ALBUMS.find(a => a.id === id);
+        if (!alb) return;
+        badge = `ALBUM • ${alb.year}`;
+        title = alb.title;
+        subtitle = `${alb.artist} • ${alb.trackIds.length} tracks`;
+        palette = alb.palette;
+        pattern = alb.pattern;
+        trackList = alb.trackIds.map(tid => TRACKS.find(t => t.id === tid)).filter(Boolean);
+      } else if (type === 'artist') {
+        const art = ARTISTS.find(a => a.id === id);
+        if (!art) return;
+        badge = 'VERIFIED ARTIST';
+        title = art.name;
+        subtitle = `${art.genre} • ${art.followers}`;
+        palette = art.palette;
+        pattern = art.pattern;
+        trackList = TRACKS.filter(t => t.artistId === art.id);
+        if (trackList.length === 0) trackList = TRACKS.slice(0, 4);
+      } else if (type === 'liked') {
+        badge = 'PERSONAL COLLECTION';
+        title = 'Liked Songs';
+        trackList = TRACKS.filter(t => t.liked);
+        subtitle = `Your saved favorites • ${trackList.length} tracks`;
+        palette = ['#10b981', '#059669', '#064e3b'];
+        pattern = 0;
+      }
+
+      document.getElementById('modalBadge').textContent = badge;
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalSubtitle').textContent = subtitle;
+      document.getElementById('modalCover').innerHTML = generateCoverSVG(palette, pattern);
+
+      const playAllBtn = document.getElementById('modalPlayAllBtn');
+      playAllBtn.onclick = () => {
+        if (trackList.length > 0) {
+          playTrackById(trackList[0].id, trackList);
+          modal.classList.add('hidden');
+        }
+      };
+
+      const listEl = document.getElementById('modalTracksList');
+      if (trackList.length === 0) {
+        listEl.innerHTML = `<p class="text-sm text-zinc-400 text-center py-8">No tracks found in this collection yet.</p>`;
+      } else {
+        listEl.innerHTML = trackList.map((t, i) => {
+          const isCurrent = getCurrentTrack().id === t.id;
+          return `
+            <div onclick="playTrackById('${t.id}'); document.getElementById('detailModal').classList.add('hidden');" class="flex items-center justify-between gap-3 py-2.5 px-3 rounded-xl hover:bg-white/5 cursor-pointer group transition">
+              <div class="flex items-center gap-3 min-w-0">
+                <span class="w-5 text-xs font-semibold ${isCurrent ? 'text-emerald-400' : 'text-zinc-500'}">${i + 1}</span>
+                <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0">
+                  ${generateCoverSVG(t.palette, t.pattern)}
+                </div>
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold truncate ${isCurrent ? 'text-emerald-400' : 'text-white'}">${t.title}</p>
+                  <p class="text-xs text-zinc-400 truncate">${t.artist}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 shrink-0">
+                <button onclick="toggleLikeTrack('${t.id}', event)" class="p-1.5 ${t.liked ? 'text-emerald-400' : 'text-zinc-500 hover:text-white'}">
+                  <svg class="w-4 h-4" fill="${t.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  </svg>
+                </button>
+                <span class="text-xs text-zinc-400 tabular-nums">${formatTime(t.duration)}</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    /**
+     * Main View Renderer (Home, Search, Library)
+     */
+    function renderView() {
+      const container = document.getElementById('contentContainer');
+      const currentTrack = getCurrentTrack();
+      const query = state.searchQuery.trim().toLowerCase();
+
+      // Update Sidebar & Mobile Nav Active Styles
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const isMatch = btn.dataset.nav === state.activeNav;
+        btn.classList.toggle('bg-white/10', isMatch);
+        btn.classList.toggle('text-white', isMatch);
+        btn.classList.toggle('font-semibold', isMatch);
+        btn.classList.toggle('text-zinc-400', !isMatch);
+      });
+
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        const isMatch = btn.dataset.nav === state.activeNav;
+        btn.className = isMatch
+          ? 'mobile-nav-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-emerald-500 text-zinc-950 shrink-0'
+          : 'mobile-nav-btn px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-800 text-zinc-300 shrink-0';
+      });
+
+      // Filter tracks if search query or artist filter is active
+      let filteredTracks = TRACKS;
+      if (query) {
+        filteredTracks = TRACKS.filter(t =>
+          t.title.toLowerCase().includes(query) ||
+          t.artist.toLowerCase().includes(query) ||
+          t.album.toLowerCase().includes(query)
+        );
+      } else if (state.selectedArtistId) {
+        filteredTracks = TRACKS.filter(t => t.artistId === state.selectedArtistId);
+      }
+
+      // SEARCH VIEW
+      if (state.activeNav === 'search' || query.length > 0) {
+        const filteredArtists = query
+          ? ARTISTS.filter(a => a.name.toLowerCase().includes(query) || a.genre.toLowerCase().includes(query))
+          : ARTISTS;
+        const filteredAlbums = query
+          ? ALBUMS.filter(a => a.title.toLowerCase().includes(query) || a.artist.toLowerCase().includes(query))
+          : ALBUMS;
+
+        container.innerHTML = `
+          <section class="space-y-6">
+            <div class="flex items-center justify-between">
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+                  ${query ? `Results for "${state.searchQuery}"` : 'Browse & Search'}
+                </h1>
+                <p class="text-xs sm:text-sm text-zinc-400 mt-1">Instant filtering across songs, artists, and albums</p>
+              </div>
+              ${query ? `<button onclick="clearSearch()" class="text-xs font-semibold text-emerald-400 hover:underline">Clear Search</button>` : ''}
+            </div>
+
+            <!-- Genre Mood Chips -->
+            <div class="flex flex-wrap gap-2">
+              ${['Chillwave', 'Neo-Soul', 'Synth', 'Melodic House', 'Lo-Fi Jazz', 'Dreamwave'].map(tag => `
+                <button onclick="setSearchQuery('${tag}')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-surface-800 hover:bg-emerald-500/20 hover:text-emerald-300 border border-white/10 transition">
+                  ${tag}
+                </button>
+              `).join('')}
+            </div>
+
+            <!-- Matching Tracks -->
+            <div>
+              <h2 class="text-lg font-bold text-white mb-3">Tracks (${filteredTracks.length})</h2>
+              ${filteredTracks.length === 0
+                ? `<div class="p-8 rounded-2xl bg-surface-900/60 border border-white/5 text-center text-sm text-zinc-400">No matching tracks found. Try another keyword!</div>`
+                : renderTrackTable(filteredTracks, currentTrack)
+              }
+            </div>
+
+            <!-- Matching Artists -->
+            ${filteredArtists.length > 0 ? `
+              <div>
+                <h2 class="text-lg font-bold text-white mb-3">Artists (${filteredArtists.length})</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+                  ${filteredArtists.map(art => renderArtistCard(art)).join('')}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Matching Albums -->
+            ${filteredAlbums.length > 0 ? `
+              <div>
+                <h2 class="text-lg font-bold text-white mb-3">Albums (${filteredAlbums.length})</h2>
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                  ${filteredAlbums.map(alb => renderAlbumCard(alb)).join('')}
+                </div>
+              </div>
+            ` : ''}
+          </section>
+        `;
+        return;
+      }
+
+      // LIBRARY VIEW
+      if (state.activeNav === 'library') {
+        const likedTracks = TRACKS.filter(t => t.liked);
+        container.innerHTML = `
+          <section class="space-y-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Your Library</h1>
+                <p class="text-xs sm:text-sm text-zinc-400 mt-1">Your saved playlists, favorite tracks, and collected albums</p>
+              </div>
+              <button onclick="document.getElementById('createPlaylistBtn').click()" class="self-start sm:self-auto px-4 py-2 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs flex items-center gap-1.5 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+                New Playlist
+              </button>
+            </div>
+
+            <!-- Playlists Grid -->
+            <div>
+              <h2 class="text-lg font-bold text-white mb-4">Your Playlists</h2>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                ${PLAYLISTS.map(pl => renderPlaylistCard(pl)).join('')}
+              </div>
+            </div>
+
+            <!-- Liked Songs Section -->
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold text-white">Liked Songs (${likedTracks.length})</h2>
+                ${likedTracks.length > 0 ? `<button onclick="playTrackById('${likedTracks[0].id}', TRACKS.filter(t => t.liked))" class="text-xs font-semibold text-emerald-400 hover:underline">Play All Liked</button>` : ''}
+              </div>
+              ${likedTracks.length === 0
+                ? `<div class="p-8 rounded-2xl bg-surface-900 border border-white/5 text-center text-sm text-zinc-400">Click the heart icon next to any song to save it here.</div>`
+                : renderTrackTable(likedTracks, currentTrack)
+              }
+            </div>
+          </section>
+        `;
+        return;
+      }
+
+      // HOME VIEW (Default)
+      const recentTracks = TRACKS.filter(t => t.recent).slice(0, 6);
+      const selectedArtist = state.selectedArtistId ? ARTISTS.find(a => a.id === state.selectedArtistId) : null;
+
+      container.innerHTML = `
+        <!-- Greeting Hero Banner -->
+        <section class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-emerald-900/50 via-teal-900/30 to-surface-900 border border-white/10 p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div class="space-y-2 max-w-xl relative z-10">
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Featured Session
+            </span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold tracking-tight text-white leading-tight">
+              Good Evening, Listener
+            </h1>
+            <p class="text-xs sm:text-sm text-zinc-300 leading-relaxed">
+              Dive into spatial ambient electronics, neo-soul, and nocturnal synthscapes. Click any track to launch live Web Audio synthesis.
+            </p>
+            <div class="pt-2 flex flex-wrap items-center gap-3">
+              <button onclick="playTrackById('trk-1')" class="px-5 py-2.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-xs sm:text-sm flex items-center gap-2 shadow-lg shadow-emerald-500/25 transition transform active:scale-95">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                Play Featured Mix
+              </button>
+              <button onclick="openCollectionModal('playlist', 'pl-1')" class="px-5 py-2.5 rounded-full bg-white/10 hover:bg-white/15 text-white font-semibold text-xs sm:text-sm border border-white/10 transition">
+                Explore Late Night Focus
+              </button>
+            </div>
+          </div>
+
+          <!-- Decorative Visual Disc -->
+          <div class="hidden lg:flex items-center justify-center relative w-36 h-36 shrink-0">
+            <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-emerald-500 to-cyan-400 blur-2xl opacity-30"></div>
+            <div class="w-32 h-32 rounded-2xl overflow-hidden shadow-2xl border border-white/15 rotate-3 hover:rotate-0 transition duration-500">
+              ${generateCoverSVG(['#10b981', '#0ea5e9', '#1e1b4b'], 1, 'AURA')}
+            </div>
+          </div>
+        </section>
+
+        <!-- 1. Recently Played (Quick Access Grid / Scrollable Cards) -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white">Recently Played</h2>
+            <span class="text-xs text-zinc-400">Jump back in</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            ${recentTracks.map(t => {
+              const isCurrent = currentTrack.id === t.id;
+              return `
+                <div onclick="playTrackById('${t.id}')" class="group flex items-center gap-3.5 bg-surface-850/90 hover:bg-surface-800 border border-white/5 hover:border-white/15 rounded-2xl p-2 pr-4 cursor-pointer transition shadow-sm">
+                  <div class="w-14 h-14 rounded-xl overflow-hidden shrink-0 relative shadow">
+                    ${generateCoverSVG(t.palette, t.pattern)}
+                    <div class="absolute inset-0 bg-black/40 ${isCurrent && state.isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} flex items-center justify-center transition">
+                      <div class="w-8 h-8 rounded-full bg-emerald-500 text-zinc-950 flex items-center justify-center shadow-lg">
+                        ${isCurrent && state.isPlaying
+                          ? `<svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`
+                          : `<svg class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
+                        }
+                      </div>
+                    </div>
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold truncate ${isCurrent ? 'text-emerald-400' : 'text-white'}">${t.title}</p>
+                    <p class="text-xs text-zinc-400 truncate">${t.artist}</p>
+                  </div>
+                  ${isCurrent && state.isPlaying ? `
+                    <div class="flex items-end gap-0.5 h-3.5 shrink-0">
+                      <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+                      <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+                      <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+                    </div>
+                  ` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </section>
+
+        <!-- 2. Featured Artists (Circular Avatars) -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white">Featured Artists</h2>
+              <p class="text-xs text-zinc-400">Click an artist to filter popular tracks or view profile</p>
+            </div>
+            ${selectedArtist ? `
+              <button onclick="clearArtistFilter()" class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold hover:bg-emerald-500/30 transition">
+                Showing: ${selectedArtist.name} ✕
+              </button>
+            ` : ''}
+          </div>
+          <div class="flex gap-4 overflow-x-auto no-scrollbar pb-2 sm:grid sm:grid-cols-3 md:grid-cols-6 sm:overflow-visible">
+            ${ARTISTS.map(art => renderArtistCard(art)).join('')}
+          </div>
+        </section>
+
+        <!-- 3. Popular Tracks List -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white">
+                ${selectedArtist ? `Popular Tracks by ${selectedArtist.name}` : 'Popular Tracks'}
+              </h2>
+              <p class="text-xs text-zinc-400">Top streamed releases this week</p>
+            </div>
+            ${selectedArtist ? `
+              <button onclick="openCollectionModal('artist', '${selectedArtist.id}')" class="text-xs font-semibold text-emerald-400 hover:underline">Open Artist Page</button>
+            ` : ''}
+          </div>
+          ${renderTrackTable(filteredTracks, currentTrack)}
+        </section>
+
+        <!-- 4. Curated Playlists -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white">Curated Playlists</h2>
+              <p class="text-xs text-zinc-400">Handpicked soundtracks for every mood</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
+            ${PLAYLISTS.map(pl => renderPlaylistCard(pl)).join('')}
+          </div>
+        </section>
+
+        <!-- 5. Top Albums -->
+        <section>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg sm:text-xl font-bold tracking-tight text-white">Top Albums</h2>
+              <p class="text-xs text-zinc-400">Essential full-length LPs</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5">
+            ${ALBUMS.map(alb => renderAlbumCard(alb)).join('')}
+          </div>
+        </section>
+      `;
+    }
+
+    /**
+     * Component Render Helpers
+     */
+    function renderTrackTable(tracks, currentTrack) {
+      return `
+        <div class="bg-surface-900/60 border border-white/5 rounded-2xl overflow-hidden">
+          <!-- Table Header -->
+          <div class="hidden sm:grid grid-cols-12 gap-4 px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 border-b border-white/5">
+            <div class="col-span-1 text-center">#</div>
+            <div class="col-span-5">Title</div>
+            <div class="col-span-3">Album</div>
+            <div class="col-span-2 text-right">Plays</div>
+            <div class="col-span-1 text-right">Time</div>
+          </div>
+
+          <!-- Rows -->
+          <div class="divide-y divide-white/[0.04]">
+            ${tracks.map((t, index) => {
+              const isCurrent = currentTrack.id === t.id;
+              return `
+                <div onclick="playTrackById('${t.id}')" class="grid grid-cols-12 items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2.5 hover:bg-white/[0.06] cursor-pointer group transition ${isCurrent ? 'bg-emerald-500/[0.07]' : ''}">
+                  <!-- Number / Play Icon -->
+                  <div class="col-span-1 flex items-center justify-center text-xs font-semibold">
+                    ${isCurrent && state.isPlaying
+                      ? `<div class="flex items-end gap-0.5 h-3.5">
+                           <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+                           <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+                           <span class="eq-bar w-0.5 h-full bg-emerald-400 rounded-full"></span>
+                         </div>`
+                      : `<span class="group-hover:hidden ${isCurrent ? 'text-emerald-400' : 'text-zinc-500'}">${index + 1}</span>
+                         <svg class="w-4 h-4 hidden group-hover:block text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>`
+                    }
+                  </div>
+
+                  <!-- Cover + Title + Artist -->
+                  <div class="col-span-8 sm:col-span-5 flex items-center gap-3 min-w-0">
+                    <div class="w-10 h-10 rounded-lg overflow-hidden shrink-0 shadow">
+                      ${generateCoverSVG(t.palette, t.pattern)}
+                    </div>
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold truncate ${isCurrent ? 'text-emerald-400' : 'text-white'}">${t.title}</p>
+                      <p class="text-xs text-zinc-400 truncate hover:underline" onclick="event.stopPropagation(); selectArtist('${t.artistId}')">${t.artist}</p>
+                    </div>
+                  </div>
+
+                  <!-- Album -->
+                  <div class="hidden sm:block col-span-3 text-xs text-zinc-400 truncate hover:text-zinc-200" onclick="event.stopPropagation(); openCollectionModal('album', '${t.albumId}')">
+                    ${t.album}
+                  </div>
+
+                  <!-- Plays -->
+                  <div class="hidden sm:block col-span-2 text-right text-xs text-zinc-500 tabular-nums">
+                    ${t.plays}
+                  </div>
+
+                  <!-- Like + Duration -->
+                  <div class="col-span-3 sm:col-span-1 flex items-center justify-end gap-2">
+                    <button onclick="toggleLikeTrack('${t.id}', event)" class="p-1 rounded-full ${t.liked ? 'text-emerald-400' : 'text-zinc-500 opacity-70 sm:opacity-0 group-hover:opacity-100 hover:text-white'} transition" title="Like">
+                      <svg class="w-4 h-4" fill="${t.liked ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                      </svg>
+                    </button>
+                    <span class="text-xs text-zinc-400 tabular-nums">${formatTime(t.duration)}</span>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderArtistCard(art) {
+      const isSelected = state.selectedArtistId === art.id;
+      return `
+        <div onclick="selectArtist('${art.id}')" class="min-w-[130px] sm:min-w-0 p-3.5 rounded-2xl bg-surface-900/70 hover:bg-surface-800 border ${isSelected ? 'border-emerald-500/70 bg-emerald-500/10' : 'border-white/5'} flex flex-col items-center text-center cursor-pointer group transition">
+          <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden shadow-xl mb-3 ring-2 ${isSelected ? 'ring-emerald-400' : 'ring-white/10 group-hover:ring-emerald-400/50'} transition relative">
+            ${generateCoverSVG(art.palette, art.pattern)}
+          </div>
+          <h3 class="text-sm font-bold text-white truncate w-full group-hover:text-emerald-300 transition">${art.name}</h3>
+          <p class="text-[11px] text-zinc-400 mt-0.5">${art.followers}</p>
+        </div>
+      `;
+    }
+
+    function renderPlaylistCard(pl) {
+      return `
+        <div onclick="openCollectionModal('playlist', '${pl.id}')" class="p-3.5 rounded-2xl bg-surface-900/70 hover:bg-surface-800 border border-white/5 hover:border-white/15 cursor-pointer group transition flex flex-col">
+          <div class="aspect-square w-full rounded-xl overflow-hidden shadow-lg mb-3 relative">
+            ${generateCoverSVG(pl.palette, pl.pattern)}
+            <button onclick="event.stopPropagation(); playCollectionImmediate('playlist', '${pl.id}')" class="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 flex items-center justify-center shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition duration-200" title="Play Playlist">
+              <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
+          <h3 class="text-sm font-bold text-white truncate">${pl.title}</h3>
+          <p class="text-xs text-zinc-400 line-clamp-2 mt-1 leading-relaxed">${pl.description}</p>
+        </div>
+      `;
+    }
+
+    function renderAlbumCard(alb) {
+      return `
+        <div onclick="openCollectionModal('album', '${alb.id}')" class="p-3.5 rounded-2xl bg-surface-900/70 hover:bg-surface-800 border border-white/5 hover:border-white/15 cursor-pointer group transition flex flex-col">
+          <div class="aspect-square w-full rounded-xl overflow-hidden shadow-lg mb-3 relative">
+            ${generateCoverSVG(alb.palette, alb.pattern)}
+            <button onclick="event.stopPropagation(); playCollectionImmediate('album', '${alb.id}')" class="absolute bottom-2.5 right-2.5 w-10 h-10 rounded-full bg-emerald-500 hover:bg-emerald-400 text-zinc-950 flex items-center justify-center shadow-xl opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition duration-200" title="Play Album">
+              <svg class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
+          <h3 class="text-sm font-bold text-white truncate">${alb.title}</h3>
+          <p class="text-xs text-zinc-400 truncate mt-0.5">${alb.artist} • ${alb.year}</p>
+        </div>
+      `;
+    }
+
+    /**
+     * Interactive Helpers
+     */
+    function playCollectionImmediate(type, id) {
+      const col = type === 'playlist'
+        ? PLAYLISTS.find(p => p.id === id)
+        : ALBUMS.find(a => a.id === id);
+      if (!col || !col.trackIds.length) return;
+      const tracks = col.trackIds.map(tid => TRACKS.find(t => t.id === tid)).filter(Boolean);
+      if (tracks.length) {
+        playTrackById(tracks[0].id, tracks);
+      }
+    }
+
+    function selectArtist(artistId) {
+      if (state.selectedArtistId === artistId) {
+        state.selectedArtistId = null;
+      } else {
+        state.selectedArtistId = artistId;
+        state.activeNav = 'home';
+      }
+      renderView();
+    }
+
+    function clearArtistFilter() {
+      state.selectedArtistId = null;
+      renderView();
+    }
+
+    function setSearchQuery(q) {
+      state.searchQuery = q;
+      const input = document.getElementById('globalSearchInput');
+      if (input) input.value = q;
+      document.getElementById('clearSearchBtn').classList.toggle('hidden', !q);
+      renderView();
+    }
+
+    function clearSearch() {
+      setSearchQuery('');
+    }
+
+    /**
+     * Wire Up Event Listeners
+     */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Navigation Buttons
+      document.querySelectorAll('[data-nav]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.activeNav = btn.dataset.nav;
+          if (state.activeNav !== 'search') {
+            state.searchQuery = '';
+            document.getElementById('globalSearchInput').value = '';
+            document.getElementById('clearSearchBtn').classList.add('hidden');
+          }
+          renderView();
+        });
+      });
+
+      // Reset / Back Button
+      document.getElementById('resetViewBtn').addEventListener('click', () => {
+        state.activeNav = 'home';
+        state.selectedArtistId = null;
+        clearSearch();
+      });
+
+      // Global Search Input
+      const searchInput = document.getElementById('globalSearchInput');
+      const clearBtn = document.getElementById('clearSearchBtn');
+      searchInput.addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        clearBtn.classList.toggle('hidden', !state.searchQuery);
+        renderView();
+      });
+      clearBtn.addEventListener('click', clearSearch);
+
+      // Liked Songs Header & Mobile Buttons
+      document.getElementById('likedSongsHeaderBtn').addEventListener('click', () => openCollectionModal('liked'));
+      document.getElementById('mobileLikedBtn').addEventListener('click', () => openCollectionModal('liked'));
+
+      // Close Detail Modal
+      document.getElementById('closeModalBtn').addEventListener('click', () => {
+        document.getElementById('detailModal').classList.add('hidden');
+      });
+      document.getElementById('detailModal').addEventListener('click', (e) => {
+        if (e.target.id === 'detailModal') {
+          document.getElementById('detailModal').classList.add('hidden');
+        }
+      });
+
+      // Create Playlist Modal Flow
+      const createPlModal = document.getElementById('createPlaylistModal');
+      const plNameInput = document.getElementById('newPlaylistNameInput');
+      document.getElementById('createPlaylistBtn').addEventListener('click', () => {
+        plNameInput.value = '';
+        createPlModal.classList.remove('hidden');
+        plNameInput.focus();
+      });
+      document.getElementById('cancelCreatePlaylistBtn').addEventListener('click', () => {
+        createPlModal.classList.add('hidden');
+      });
+      document.getElementById('confirmCreatePlaylistBtn').addEventListener('click', () => {
+        const name = plNameInput.value.trim() || `Custom Mix #${PLAYLISTS.length + 1}`;
+        const palettes = [
+          ['#10b981', '#3b82f6', '#09090b'],
+          ['#f43f5e', '#f59e0b', '#18181b'],
+          ['#8b5cf6', '#ec4899', '#09090b']
+        ];
+        const newPl = {
+          id: 'pl-' + Date.now(),
+          title: name,
+          description: 'Created by you • Fresh custom selection.',
+          palette: palettes[PLAYLISTS.length % palettes.length],
+          pattern: PLAYLISTS.length % 4,
+          trackIds: ['trk-1', 'trk-2', 'trk-4', 'trk-6']
+        };
+        PLAYLISTS.unshift(newPl);
+        renderSidebarPlaylists();
+        createPlModal.classList.add('hidden');
+        showToast(`Created playlist "${name}"`);
+        if (state.activeNav === 'library') renderView();
+      });
+
+      // Player Controls
+      document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+      document.getElementById('nextBtn').addEventListener('click', playNext);
+      document.getElementById('prevBtn').addEventListener('click', playPrev);
+
+      document.getElementById('playerLikeBtn').addEventListener('click', () => {
+        toggleLikeTrack(getCurrentTrack().id);
+      });
+
+      document.getElementById('shuffleBtn').addEventListener('click', () => {
+        state.isShuffle = !state.isShuffle;
+        updatePlayerUI();
+        showToast(state.isShuffle ? 'Shuffle On' : 'Shuffle Off');
+      });
+
+      document.getElementById('repeatBtn').addEventListener('click', () => {
+        state.repeatMode = (state.repeatMode + 1) % 3;
+        updatePlayerUI();
+        const labels = ['Repeat Off', 'Repeat All', 'Repeat One'];
+        showToast(labels[state.repeatMode]);
+      });
+
+      // Seek Bar Scrubbing
+      const seekSlider = document.getElementById('seekSlider');
+      seekSlider.addEventListener('input', (e) => {
+        const pct = parseFloat(e.target.value);
+        const track = getCurrentTrack();
+        state.currentTime = (pct / 100) * track.duration;
+        document.getElementById('progressFill').style.width = `${pct}%`;
+        document.getElementById('currentTimeLabel').textContent = formatTime(state.currentTime);
+      });
+
+      // Volume Slider & Mute
+      const volumeSlider = document.getElementById('volumeSlider');
+      const volumeFill = document.getElementById('volumeFill');
+      const muteBtn = document.getElementById('muteBtn');
+
+      function updateVolumeUI() {
+        const effectiveVol = state.isMuted ? 0 : state.volume;
+        volumeFill.style.width = `${effectiveVol * 100}%`;
+        volumeSlider.value = effectiveVol;
+        document.getElementById('volHighIcon').classList.toggle('hidden', state.isMuted || state.volume === 0);
+        document.getElementById('volMuteIcon').classList.toggle('hidden', !state.isMuted && state.volume > 0);
+        synth.setVolume(state.volume, state.isMuted);
+      }
+
+      volumeSlider.addEventListener('input', (e) => {
+        state.volume = parseFloat(e.target.value);
+        state.isMuted = state.volume === 0;
+        updateVolumeUI();
+      });
+
+      muteBtn.addEventListener('click', () => {
+        state.isMuted = !state.isMuted;
+        if (!state.isMuted && state.volume === 0) state.volume = 0.6;
+        updateVolumeUI();
+      });
+
+      // Keyboard Spacebar shortcut for Play/Pause (when not typing in inputs)
+      document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT') {
+          e.preventDefault();
+          togglePlayPause();
+        }
+      });
+
+      // Initial Render
+      renderSidebarPlaylists();
+      updateLikedBadge();
+      updatePlayerUI();
+      renderView();
+    });
+  </script>
+</body>
+</html>
